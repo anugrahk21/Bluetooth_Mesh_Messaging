@@ -1,0 +1,86 @@
+package com.blemesh.app
+
+import android.os.Bundle
+import android.util.Log
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.runtime.*
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.blemesh.app.ui.navigation.AppNavigation
+import com.blemesh.app.ui.theme.BLEMeshTheme
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
+class MainActivity : ComponentActivity() {
+
+    private val app by lazy { application as BLEMeshApp }
+    private var hasRequestedPermissions = false
+
+    private val permissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allGranted = permissions.values.all { it }
+        Log.d("MainActivity", "Permissions result: allGranted=$allGranted")
+        if (allGranted) {
+            app.bleManager.checkBleState()
+            app.bleManager.startDiscovery()
+            Log.d("MainActivity", "Discovery started after permission grant")
+        }
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
+        setContent {
+            BLEMeshTheme {
+                val identity by app.preferencesManager.identity.collectAsStateWithLifecycle(initialValue = null)
+
+                // Initialize BLE and auto-request permissions when identity is ready
+                LaunchedEffect(identity) {
+                    identity?.let {
+                        Log.d("MainActivity", "Identity loaded: ${it.username}")
+                        app.bleManager.initialize(it.username, it.deviceId)
+
+                        // Auto-request permissions if not already granted
+                        if (!app.bleManager.hasPermissions() && !hasRequestedPermissions) {
+                            hasRequestedPermissions = true
+                            Log.d("MainActivity", "Auto-requesting BLE permissions")
+                            permissionLauncher.launch(app.bleManager.getRequiredPermissions())
+                        } else if (app.bleManager.hasPermissions()) {
+                            // Permissions already granted, start immediately
+                            Log.d("MainActivity", "Permissions OK, starting discovery")
+                            app.bleManager.startDiscovery()
+                        }
+                    }
+                }
+
+                AppNavigation(
+                    identity = identity,
+                    bleManager = app.bleManager,
+                    onIdentitySet = { username ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            app.preferencesManager.saveIdentity(username)
+                        }
+                    },
+                    onUpdateUsername = { username ->
+                        CoroutineScope(Dispatchers.IO).launch {
+                            app.preferencesManager.updateUsername(username)
+                        }
+                    },
+                    onRequestPermissions = {
+                        permissionLauncher.launch(app.bleManager.getRequiredPermissions())
+                    }
+                )
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        app.bleManager.cleanup()
+    }
+}

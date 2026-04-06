@@ -1,0 +1,12 @@
+package com.blemesh.app.ble
+
+import java.util.UUID
+
+object BLEConstants {
+    val SERVICE_UUID: UUID = UUID.fromString("12345678-1234-1234-1234-123456789abc")
+    val MESSAGE_CHAR_UUID: UUID = UUID.fromString("12345678-1234-1234-1234-123456789001")
+    val IDENTITY_CHAR_UUID: UUID = UUID.fromString("12345678-1234-1234-1234-123456789002")
+    val CLIENT_CONFIG_DESCRIPTOR: UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb")
+
+    const val MTU_SIZE = 512
+}
