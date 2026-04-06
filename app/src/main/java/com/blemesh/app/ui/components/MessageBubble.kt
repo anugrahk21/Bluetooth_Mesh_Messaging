@@ -75,6 +75,7 @@ fun MessageBubble(
                     )
                     if (isOwn) {
                         val (icon, tint) = when (message.status) {
+                            MessageStatus.PENDING -> Icons.Default.Schedule to textColor.copy(alpha = 0.6f)
                             MessageStatus.SENDING -> Icons.Default.Schedule to textColor.copy(alpha = 0.6f)
                             MessageStatus.SENT -> Icons.Default.Check to textColor.copy(alpha = 0.6f)
                             MessageStatus.DELIVERED -> Icons.Default.DoneAll to Purple60

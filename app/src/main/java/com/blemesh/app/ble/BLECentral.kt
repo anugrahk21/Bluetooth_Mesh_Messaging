@@ -95,8 +95,8 @@ class BLECentral(private val context: Context) {
                         connectedGatts[address] = gatt
                         // Requesting MTU is async, we must wait for onMtuChanged to discover services
                         gatt.requestMtu(BLEConstants.MTU_SIZE)
-                        updatePeerConnection(address, true)
-                        // DO NOT call onConnected() here! Services are not discovered yet.
+                        // DO NOT call onConnected() or updatePeerConnection here! 
+                        // Services are not discovered yet.
                     }
                     BluetoothProfile.STATE_DISCONNECTED -> {
                         connectedGatts.remove(address)
@@ -128,6 +128,7 @@ class BLECentral(private val context: Context) {
                     
                     // We must wait for descriptor to write before sending messages to avoid pipe collision
                     android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                        updatePeerConnection(address, true)
                         onConnected()
                     }, 300)
                 }
@@ -171,6 +172,30 @@ class BLECentral(private val context: Context) {
 
     fun clearPeers() {
         _discoveredPeers.value = emptyMap()
+    }
+
+    fun forceAddPeer(address: String, username: String) {
+        val peer = Peer(
+            deviceId = address,
+            deviceAddress = address,
+            username = username,
+            lastSeen = System.currentTimeMillis()
+        )
+        _discoveredPeers.value = _discoveredPeers.value.toMutableMap().apply {
+            put(address, peer)
+        }
+    }
+
+    fun incrementUnreadCount(address: String) {
+        _discoveredPeers.value = _discoveredPeers.value.toMutableMap().apply {
+            get(address)?.let { put(address, it.copy(unreadCount = it.unreadCount + 1)) }
+        }
+    }
+
+    fun clearUnreadCount(address: String) {
+        _discoveredPeers.value = _discoveredPeers.value.toMutableMap().apply {
+            get(address)?.let { put(address, it.copy(unreadCount = 0)) }
+        }
     }
 
     private fun updatePeerConnection(address: String, connected: Boolean) {

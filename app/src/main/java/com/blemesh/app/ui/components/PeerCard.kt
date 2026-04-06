@@ -1,6 +1,7 @@
 package com.blemesh.app.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -62,6 +63,20 @@ fun PeerCard(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                
+                if (peer.unreadCount > 0) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "${peer.unreadCount} new message${if (peer.unreadCount > 1) "s" else ""}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(OnlineGreen)
+                            .padding(horizontal = 8.dp, vertical = 2.dp)
+                    )
+                }
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = formatLastSeen(peer.lastSeen),

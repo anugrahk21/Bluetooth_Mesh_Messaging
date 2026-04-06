@@ -79,6 +79,7 @@ class MeshService : Service() {
             .setContentTitle("MeshTalk is running")
             .setContentText("Listening for mesh network messages")
             .setSmallIcon(android.R.drawable.stat_sys_data_bluetooth)
+            .setColor(0xFF5E8BFF.toInt())
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .setOngoing(true)
             .build()

@@ -39,6 +39,14 @@ fun AppNavigation(
     val isAdvertising by bleManager.peripheral.isAdvertising.collectAsStateWithLifecycle()
     val bleState by bleManager.bleState.collectAsStateWithLifecycle()
     val allMessages by bleManager.messages.collectAsStateWithLifecycle()
+    val pendingChat by bleManager.pendingChatToOpen.collectAsStateWithLifecycle()
+
+    LaunchedEffect(pendingChat) {
+        pendingChat?.let { (address, username) ->
+            navController.navigate(Screen.Chat.createRoute(address, username))
+            bleManager.clearPendingChat()
+        }
+    }
 
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Screen.Identity.route) {
@@ -79,6 +87,15 @@ fun AppNavigation(
             val peerUsername = backStackEntry.arguments?.getString("peerUsername") ?: return@composable
             val peerMessages = allMessages[peerAddress] ?: emptyList()
             val isConnected = peers[peerAddress]?.isConnected == true
+
+            DisposableEffect(peerAddress) {
+                bleManager.currentChatPeerAddress = peerAddress
+                bleManager.central.clearUnreadCount(peerAddress)
+                
+                onDispose {
+                    bleManager.currentChatPeerAddress = null
+                }
+            }
 
             ChatScreen(
                 peerUsername = peerUsername,

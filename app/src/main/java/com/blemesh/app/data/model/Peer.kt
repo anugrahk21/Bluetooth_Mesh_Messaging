@@ -6,5 +6,6 @@ data class Peer(
     val username: String,
     val rssi: Int = 0,
     val lastSeen: Long = System.currentTimeMillis(),
-    val isConnected: Boolean = false
+    val isConnected: Boolean = false,
+    val unreadCount: Int = 0
 )

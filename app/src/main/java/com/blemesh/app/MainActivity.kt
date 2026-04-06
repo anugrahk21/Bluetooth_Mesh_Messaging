@@ -39,6 +39,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        handleIntent(intent)
 
         setContent {
             BLEMeshTheme {
@@ -82,6 +83,30 @@ class MainActivity : ComponentActivity() {
                     }
                 )
             }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        app.bleManager.isAppInForeground = true
+    }
+
+    override fun onPause() {
+        super.onPause()
+        app.bleManager.isAppInForeground = false
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.let { handleIntent(it) }
+    }
+
+    private fun handleIntent(intent: Intent) {
+        val address = intent.getStringExtra("OPEN_CHAT_ADDRESS")
+        val username = intent.getStringExtra("OPEN_CHAT_USERNAME")
+        if (address != null && username != null) {
+            Log.d("MainActivity", "Deep linking to chat with $username ($address)")
+            app.bleManager.setPendingChat(address, username)
         }
     }
 

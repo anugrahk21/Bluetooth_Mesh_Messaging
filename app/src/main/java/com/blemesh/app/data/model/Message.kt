@@ -11,5 +11,5 @@ data class Message(
 )
 
 enum class MessageStatus {
-    SENDING, SENT, DELIVERED, FAILED
+    PENDING, SENDING, SENT, DELIVERED, FAILED
 }
